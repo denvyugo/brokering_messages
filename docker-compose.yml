@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  mq:
+    image: rabbitmq:management
+    hostname: mq
+    ports:
+      - 5672:5672   # The standard AMQP protocol port
+      - 15672:15672 # HTTP management UI
+    networks:
+      - network
+  db:
+    image: postgres:10.1-alpine
+    volumes:
+      - postres_data:/var/lib/postgresql/data/
+    networks:
+      - network
+  wrk:
+    build: worker
+    networks:
+      - network
+    depends_on:
+      - mq
+      - db
+  web:
+    build: receiver
+    command: python receiver/receiver.py
+    volumes:
+      - .:/srv
+    ports:
+      - 8000:8000
+    networks:
+      - network
+    depends_on:
+      - db
+      - mq
+
+volumes:
+  postres_data:
+
+networks:
+  network: {}
