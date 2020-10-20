@@ -33,16 +33,12 @@ async def send_message(text, source):
         channel = await connection.channel()
         exchange = await channel.declare_exchange('messages',
                                                   aio_pika.ExchangeType.DIRECT)
-        #queue = await channel.declare_queue('messages')
-        #await queue.bind(exchange, source)
         await exchange.publish(
             aio_pika.Message(
                 body=text.encode(),
                 delivery_mode=aio_pika.DeliveryMode.PERSISTENT),
             routing_key=routing
             )
-        #await queue.unbind(exchange, source)
-        #await queue.delete()
         await connection.close()
     except Exception as exp:
         raise RabbitWorkingError(f'{str(exp)}')
